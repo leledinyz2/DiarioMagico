@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Diário Secreto de Unicórnio 🦄</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#a18cd1">
+    <style>
+        body { font-family: 'Fredoka', sans-serif; }
+        .arco-iris-texto {
+            background: linear-gradient(to right, #ff758c, #ff7eb3, #eecda3, #a18cd1, #70a1ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .arco-iris-borda {
+            background: linear-gradient(to right, #ff9a9e, #fecfef, #a1c4fd, #c2e9fb);
+            padding: 4px;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-b from-purple-200 via-pink-100 to-purple-100 min-h-screen text-purple-900 pb-12">
+
+    <header class="text-center py-8">
+        <h1 class="text-4xl md:text-5xl font-bold tracking-wide drop-shadow-sm flex justify-center items-center gap-2">
+            ✨ <span class="arco-iris-texto">Diário Mágico</span> 🦄
+        </h1>
+        <p class="text-purple-600 mt-2 text-lg font-medium">Seus segredos protegidos! 🗝️</p>
+    </header>
+
+    <main class="max-w-xl mx-auto px-4">
+        <div class="bg-white rounded-3xl p-6 shadow-xl border-4 border-purple-300 text-center mb-6">
+            <p class="font-bold text-lg text-purple-700 mb-3">Como está o seu humor hoje? 💕</p>
+            <div class="flex justify-center gap-4">
+                <button onclick="selecionarHumor('Feliz! 🌈🦄')" class="text-4xl hover:scale-125 transition bg-purple-50 p-3 rounded-2xl border-2 border-purple-200 hover:border-pink-400">🦄</button>
+                <button onclick="selecionarHumor('Animada! 🎉✨')" class="text-4xl hover:scale-125 transition bg-purple-50 p-3 rounded-2xl border-2 border-purple-200 hover:border-yellow-400">👑</button>
+                <button onclick="selecionarHumor('Com Preguiça... 😴💤')" class="text-4xl hover:scale-125 transition bg-purple-50 p-3 rounded-2xl border-2 border-purple-200 hover:border-blue-400">🌟</button>
+                <button onclick="selecionarHumor('Pensativa 🤔💭')" class="text-4xl hover:scale-125 transition bg-purple-50 p-3 rounded-2xl border-2 border-purple-200 hover:border-purple-400">🔮</button>
+            </div>
+            <p id="humor-atual" class="text-sm text-pink-500 font-bold mt-3">Humor escolhido: Feliz! 🌈🦄</p>
+        </div>
+
+        <div class="arco-iris-borda rounded-3xl shadow-2xl">
+            <div class="bg-purple-50 rounded-[20px] p-6 space-y-4 border-2 border-purple-300">
+                <label class="block font-bold text-purple-800 text-lg">💡 Querido Diário...</label>
+                <textarea id="texto-segredo" rows="5" placeholder="Hoje eu fiz uma coisa muito legal..." 
+                    class="w-full rounded-2xl p-4 border-2 border-purple-200 focus:border-purple-500 text-purple-800 bg-white placeholder-purple-300 text-md shadow-inner outline-none resize-none"></textarea>
+                
+                <button onclick="salvarSegredo()" class="w-full bg-gradient-to-r from-purple-500 via-pink-500 to-yellow-400 text-white font-bold text-lg py-4 rounded-2xl shadow-lg hover:opacity-90 transform hover:scale-[1.02] active:scale-95 transition-all flex justify-center items-center gap-2 border-b-4 border-purple-700">
+                    🔒 Trancar no Diário com Magia!
+                </button>
+            </div>
+        </div>
+
+        <div class="mt-8">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-purple-800 text-xl flex items-center gap-2">
+                    📖 Páginas Salvas (<span id="total-segredos">0</span>)
+                </h3>
+                <button onclick="limparDiario()" class="text-xs text-purple-400 hover:text-red-500 underline">Apagar tudo 🧹</button>
+            </div>
+            <div id="lista-segredos" class="space-y-4">
+                <p id="aviso-vazio" class="text-center text-purple-400 text-sm italic">Nenhum segredo guardado ainda... Escreva o seu primeiro! ✨</p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let humorSelecionado = "Feliz! 🌈🦄";
+        let segredosSalvos = [];
+
+        window.onload = function() {
+            // Registrar um Service Worker simples (obrigatório para instalar como app)
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('sw.js').catch(() => {});
+            }
+
+            const memoria = localStorage.getItem('diario_segredos');
+            if (memoria) {
+                segredosSalvos = JSON.parse(memoria);
+                atualizarTela();
+            }
+        }
+
+        function selecionarHumor(humor) {
+            humorSelecionado = humor;
+            document.getElementById('humor-atual').innerText = "Humor escolhido: " + humor;
+        }
+
+        function salvarSegredo() {
+            const caixaTexto = document.getElementById('texto-segredo');
+            const segredoTexto = caixaTexto.value.trim();
+
+            if (segredoTexto === "") {
+                alert("Ups! Você esqueceu de escrever o seu segredo! 🤫🔍");
+                return;
+            }
+
+            const agora = new Date();
+            const dataFormatada = agora.toLocaleDateString('pt-BR') + " às " + agora.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+
+            const novoSegredo = { data: dataFormatada, humor: humorSelecionado, texto: segredoTexto };
+            segredosSalvos.unshift(novoSegredo);
+            localStorage.setItem('diario_segredos', JSON.stringify(segredosSalvos));
+
+            atualizarTela();
+            caixaTexto.value = "";
+            alert("🔐 Segredo guardado com magia!");
+        }
+
+        function atualizarTela() {
+            const lista = document.getElementById('lista-segredos');
+            const aviso = document.getElementById('aviso-vazio');
+            lista.innerHTML = "";
+
+            if (segredosSalvos.length === 0) {
+                aviso.classList.remove('hidden');
+                lista.appendChild(aviso);
+                document.getElementById('total-segredos').innerText = "0";
+                return;
+            }
+
+            aviso.classList.add('hidden');
+            document.getElementById('total-segredos').innerText = segredosSalvos.length;
+
+            segredosSalvos.forEach(segredo => {
+                const card = document.createElement('div');
+                card.className = "bg-white border-l-8 border-pink-400 rounded-2xl p-4 shadow-md";
+                card.innerHTML = `
+                    <div class="flex justify-between items-center border-b border-purple-100 pb-2 mb-2 text-xs font-bold text-purple-400">
+                        <span>📅 ${segredo.data}</span>
+                        <span class="bg-purple-100 text-purple-600 px-2 py-0.5 rounded-full">Mood: ${segredo.humor}</span>
+                    </div>
+                    <p class="text-purple-800 font-medium whitespace-pre-line">"${segredo.texto}"</p>
+                `;
+                lista.appendChild(card);
+            });
+        }
+
+        function limparDiario() {
+            if (confirm("Apagar todos os segredos? 😱")) {
+                segredosSalvos = [];
+                localStorage.removeItem('diario_segredos');
+                atualizarTela();
+            }
+        }
+    </script>
+</body>
+</html>
